@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistive Drawing Machine - Text Tool v2.0</title>
+    <title>Assistive Drawing Machine - Text Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/LingDong-/p5-hershey-js@master/p5.hershey.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/LingDong-/p5-hershey-js@master/p5.hershey.data.js"></script>
@@ -409,7 +409,7 @@
                         <rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/>
                     </svg>
                 </div>
-                <span style="font-weight: 600;">TOM Plotter - Text Tool</span>
+                <span style="font-weight: 600;">Assistive Drawing Machine - Text Tool</span>
             </div>
             <div>
                 <button class="btn btn-primary" onclick="exportAllGCode()">Export All G-Code</button>
@@ -1092,7 +1092,7 @@ WORLD</textarea>
             }
             
             // Build G-code
-            let gcode = '; TOM Plotter G-code - 500x500\n';
+            let gcode = '; Plotter G-code - 500x500\n';
             gcode += '; Generated: ' + new Date().toISOString() + '\n';
             gcode += '; Text: ' + text.replace(/\n/g, ' ') + '\n';
             gcode += '; Font: ' + fontName + '\n';
