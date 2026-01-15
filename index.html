@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOM Plotter - Text Tool v2.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/LingDong-/p5-hershey-js@master/p5.hershey.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/LingDong-/p5-hershey-js@master/p5.hershey.data.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #D4E8F0;
+            color: #1A1A1A;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid #E0E0E0;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-bar-left {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .logo-shapes {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .main-workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .text-input-panel {
+            width: 320px;
+            background: white;
+            border-right: 1px solid #E0E0E0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            padding: 24px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .panel-header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666666;
+            margin-bottom: 8px;
+        }
+
+        .panel-subtitle {
+            font-size: 12px;
+            color: #9E9E9E;
+        }
+
+        .panel-section {
+            padding: 16px 24px;
+            border-bottom: 1px solid #E0E0E0;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666666;
+            margin-bottom: 8px;
+        }
+
+        .text-area {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px 12px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+
+        .text-area:hover {
+            border-color: #BDBDBD;
+        }
+
+        .text-area:focus {
+            outline: none;
+            border: 2px solid #00A5B5;
+            box-shadow: 0 0 0 4px rgba(0, 165, 181, 0.1);
+            padding: 9px 11px; /* Adjust for 2px border */
+        }
+
+        .char-counter {
+            font-size: 11px;
+            color: #9E9E9E;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        .font-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .font-select:hover {
+            border-color: #BDBDBD;
+        }
+
+        .font-select:focus {
+            outline: none;
+            border: 2px solid #00A5B5;
+            box-shadow: 0 0 0 4px rgba(0, 165, 181, 0.1);
+            padding: 9px 11px;
+        }
+
+        .font-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .font-card {
+            background: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            padding: 8px 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .font-card:hover {
+            border-color: #00A5B5;
+            background: #F0F9FA;
+        }
+
+        .font-card.selected {
+            border-color: #00A5B5;
+            background: #F0F9FA;
+            box-shadow: 0 0 0 3px rgba(0, 165, 181, 0.15);
+        }
+
+        .font-preview {
+            font-size: 18px;
+            margin-bottom: 4px;
+            color: #1A1A1A;
+        }
+
+        .font-name {
+            font-size: 9px;
+            color: #666666;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .slider-group {
+            margin-bottom: 16px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .slider-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1A1A1A;
+        }
+
+        .slider-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #00A5B5;
+        }
+
+        .size-slider {
+            width: 100%;
+            height: 4px;
+            background: #E0E0E0;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 2px solid #00A5B5;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .size-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .size-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border: 2px solid #00A5B5;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider-range {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #757575;
+            margin-top: 8px;
+        }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #D4E8F0;
+        }
+
+        .canvas-controls {
+            padding: 16px 24px;
+            background: white;
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            overflow: auto;
+        }
+
+        .canvas-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        .sequence-panel {
+            width: 300px;
+            background: white;
+            border-left: 1px solid #E0E0E0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sequence-item {
+            padding: 16px;
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+
+        .sequence-item:hover {
+            background: #F5F5F5;
+        }
+
+        .sequence-item-text {
+            flex: 1;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sequence-item-remove {
+            background: #FF6B4A;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .sequence-item-remove:hover {
+            background: #E55A3A;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #00A5B5;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover {
+            background: #008A98;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary:active {
+            background: #007785;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #00A5B5;
+            border: 2px solid #00A5B5;
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: #F0F9FA;
+            box-shadow: 0 2px 4px rgba(0, 165, 181, 0.1);
+        }
+
+        .btn-success {
+            background: #8DC63F;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-success:hover {
+            background: #7AB62F;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #9E9E9E;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <div class="logo-shapes">
+                    <svg width="24" height="24" viewBox="0 0 24 24" style="color: #FF6B4A;">
+                        <polygon points="12,2 2,22 22,22" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" style="color: #8DC63F;">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" style="color: #00A5B5;">
+                        <rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <span style="font-weight: 600;">TOM Plotter - Text Tool</span>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="exportAllGCode()">Export All G-Code</button>
+            </div>
+        </div>
+
+        <div class="main-workspace">
+            <div class="text-input-panel">
+                <div class="panel-header">
+                    <h2>Text to Drawing</h2>
+                    <p class="panel-subtitle">Real Hershey single-line fonts</p>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-label">Font Style</div>
+                    <div class="font-grid">
+                        <div class="font-card selected" onclick="selectFont(this, 'SIMPLEX')">
+                            <div class="font-preview" style="font-family: serif;">Aa</div>
+                            <div class="font-name">Simplex</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'COMPLEX')">
+                            <div class="font-preview" style="font-family: 'Georgia', serif;">Aa</div>
+                            <div class="font-name">Complex</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'DUPLEX')">
+                            <div class="font-preview" style="font-family: serif; font-weight: 600;">Aa</div>
+                            <div class="font-name">Duplex</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'TRIPLEX')">
+                            <div class="font-preview" style="font-family: 'Times New Roman', serif; font-weight: 600;">Aa</div>
+                            <div class="font-name">Triplex</div>
+                        </div>
+                    </div>
+                    <div class="font-grid" style="margin-top: 8px;">
+                        <div class="font-card" onclick="selectFont(this, 'SCRIPT_SIMPLEX')">
+                            <div class="font-preview" style="font-family: cursive; font-style: italic;">Aa</div>
+                            <div class="font-name">Script S</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'SCRIPT_COMPLEX')">
+                            <div class="font-preview" style="font-family: 'Brush Script MT', cursive; font-style: italic;">Aa</div>
+                            <div class="font-name">Script C</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'ITALIC_COMPLEX')">
+                            <div class="font-preview" style="font-family: serif; font-style: italic;">Aa</div>
+                            <div class="font-name">Italic C</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'ITALIC_TRIPLEX')">
+                            <div class="font-preview" style="font-family: 'Times New Roman', serif; font-style: italic; font-weight: 600;">Aa</div>
+                            <div class="font-name">Italic T</div>
+                        </div>
+                    </div>
+                    <div class="font-grid" style="margin-top: 8px;">
+                        <div class="font-card" onclick="selectFont(this, 'GOTHIC_GERMAN_TRIPLEX')">
+                            <div class="font-preview" style="font-family: 'Times New Roman', serif; font-weight: 900;">Aa</div>
+                            <div class="font-name">Gothic Ger</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'GOTHIC_ENGLISH_TRIPLEX')">
+                            <div class="font-preview" style="font-family: 'Old English Text MT', serif; font-weight: bold;">Aa</div>
+                            <div class="font-name">Gothic Eng</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'GOTHIC_ITALIAN_TRIPLEX')">
+                            <div class="font-preview" style="font-family: 'Palatino', serif; font-style: italic; font-weight: 600;">Aa</div>
+                            <div class="font-name">Gothic Ita</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'GREEK_SIMPLEX')">
+                            <div class="font-preview" style="font-family: serif;">Αα</div>
+                            <div class="font-name">Greek S</div>
+                        </div>
+                    </div>
+                    <div class="font-grid" style="margin-top: 8px;">
+                        <div class="font-card" onclick="selectFont(this, 'GREEK_COMPLEX')">
+                            <div class="font-preview" style="font-family: 'Times New Roman', serif;">Αα</div>
+                            <div class="font-name">Greek C</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'CYRILLIC_COMPLEX')">
+                            <div class="font-preview" style="font-family: serif;">Аа</div>
+                            <div class="font-name">Cyrillic</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'PLAIN')">
+                            <div class="font-preview" style="font-family: monospace;">Aa</div>
+                            <div class="font-name">Plain</div>
+                        </div>
+                        <div class="font-card" onclick="selectFont(this, 'COMPLEX_SMALL')">
+                            <div class="font-preview" style="font-family: 'Georgia', serif; font-size: 0.9em;">Aa</div>
+                            <div class="font-name">Complex Sm</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-label">Your Text</div>
+                    <textarea class="text-area" id="textInput" placeholder="Type your message...
+(Shift+Enter for new lines)" oninput="updatePreview()">HELLO
+WORLD</textarea>
+                    <div class="char-counter"><span id="charCount">11</span> characters</div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-label">Font Size</div>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Size</span>
+                            <span class="slider-value"><span id="sizeValue">30</span>pt</span>
+                        </div>
+                        <input type="range" id="sizeSlider" class="size-slider" min="6" max="72" value="30" step="3" oninput="updateSizePreview(this.value)">
+                        <div class="slider-range">
+                            <span>6pt</span>
+                            <span>72pt</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-label">Position (Click canvas to place)</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="font-size: 12px; color: #757575; font-weight: 600;">X Position</label>
+                            <input type="number" id="xPos" value="250" min="0" max="500" 
+                                   style="width: 100%; padding: 10px 12px; border: 1px solid #E0E0E0; border-radius: 8px; font-size: 14px; margin-top: 8px; transition: all 0.2s ease;"
+                                   onchange="updatePreview()"
+                                   onfocus="this.style.border='2px solid #00A5B5'; this.style.padding='9px 11px'; this.style.boxShadow='0 0 0 4px rgba(0, 165, 181, 0.1)'"
+                                   onblur="this.style.border='1px solid #E0E0E0'; this.style.padding='10px 12px'; this.style.boxShadow='none'">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: #757575; font-weight: 600;">Y Position</label>
+                            <input type="number" id="yPos" value="250" min="0" max="500"
+                                   style="width: 100%; padding: 10px 12px; border: 1px solid #E0E0E0; border-radius: 8px; font-size: 14px; margin-top: 8px; transition: all 0.2s ease;"
+                                   onchange="updatePreview()"
+                                   onfocus="this.style.border='2px solid #00A5B5'; this.style.padding='9px 11px'; this.style.boxShadow='0 0 0 4px rgba(0, 165, 181, 0.1)'"
+                                   onblur="this.style.border='1px solid #E0E0E0'; this.style.padding='10px 12px'; this.style.boxShadow='none'">
+                        </div>
+                    </div>
+                    <div style="font-size: 12px; color: #757575; margin-top: 8px; line-height: 16px;">
+                        Click on the canvas to set position
+                    </div>
+                </div>
+
+                <div class="panel-section" style="border-bottom: none;">
+                    <button class="btn btn-primary btn-full" onclick="addToSequence()">Add to Sequence</button>
+                    <button class="btn btn-secondary btn-full" style="margin-top: 8px;" onclick="previewCurrentGCode()">Preview G-Code</button>
+                </div>
+            </div>
+
+            <div class="canvas-area">
+                <div class="canvas-controls">
+                    <span style="font-size: 14px; color: #666;">Preview (500×500 plotter units)</span>
+                    <button class="btn btn-secondary" onclick="clearSequence()">Clear Sequence</button>
+                </div>
+                <div class="canvas-wrapper">
+                    <div class="canvas-container">
+                        <div id="canvasHolder"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sequence-panel">
+                <div class="panel-header">
+                    <h2>Drawing Sequence</h2>
+                    <p class="panel-subtitle"><span id="sequenceCount">0</span> items in queue</p>
+                </div>
+                <div id="sequenceList">
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
+                        <div>No items yet</div>
+                        <div style="font-size: 12px; margin-top: 8px;">Add text to start building your sequence</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas;
+        let capturedVertices = [];
+        
+        let textSettings = {
+            text: 'HELLO\nWORLD',
+            font: 'SIMPLEX',
+            size: 30,
+            x: 250,
+            y: 250
+        };
+
+        let sequence = [];
+
+        function setup() {
+            canvas = createCanvas(500, 500);
+            canvas.parent('canvasHolder');
+            canvas.mousePressed(handleCanvasClick);
+            noLoop();
+            updatePreview();
+        }
+
+        function handleCanvasClick() {
+            // Update position based on click
+            textSettings.x = mouseX;
+            textSettings.y = mouseY;
+            document.getElementById('xPos').value = Math.round(mouseX);
+            document.getElementById('yPos').value = Math.round(mouseY);
+            redraw();
+        }
+
+        function draw() {
+            background(250);
+            
+            // Draw grid
+            stroke(220);
+            strokeWeight(1);
+            for (let i = 0; i <= 500; i += 50) {
+                line(i, 0, i, 500);
+                line(0, i, 500, i);
+            }
+            
+            // Draw border
+            stroke(180);
+            strokeWeight(2);
+            noFill();
+            rect(0, 0, 500, 500);
+            
+            // Draw sequence items
+            sequence.forEach((item, idx) => {
+                drawHersheyText(item.text, item.font, item.size, item.x, item.y, false);
+            });
+            
+            // Draw current text on top
+            drawHersheyText(textSettings.text, textSettings.font, textSettings.size, textSettings.x, textSettings.y, true);
+        }
+
+        function drawHersheyText(text, fontName, fontSize, x, y, isCurrent) {
+            push();
+            
+            if (isCurrent) {
+                stroke(0, 165, 181);
+                strokeWeight(2);
+            } else {
+                stroke(100, 100, 100);
+                strokeWeight(1.5);
+            }
+            
+            noFill();
+            
+            // Handle multi-line text
+            const lines = text.split('\n');
+            const lineHeight = fontSize * 1.4; // Line spacing
+            const totalHeight = lines.length * lineHeight;
+            const startY = y - (totalHeight / 2) + (lineHeight / 2);
+            
+            lines.forEach((line, i) => {
+                push();
+                translate(x, startY + (i * lineHeight));
+                scale(fontSize / 21); // Hershey fonts are ~21 units tall
+                
+                P5.hershey.putText(line, {
+                    cmap: FONT_HERSHEY[fontName],
+                    align: 'center'
+                });
+                
+                pop();
+            });
+            
+            pop();
+        }
+
+        function updatePreview() {
+            const text = document.getElementById('textInput').value;
+            const x = parseInt(document.getElementById('xPos').value) || 250;
+            const y = parseInt(document.getElementById('yPos').value) || 250;
+            
+            textSettings.text = text;
+            textSettings.x = x;
+            textSettings.y = y;
+            
+            document.getElementById('charCount').textContent = text.length;
+            
+            redraw();
+        }
+        
+        function selectFont(element, fontName) {
+            // Remove selected from all cards
+            document.querySelectorAll('.font-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected to clicked card
+            element.classList.add('selected');
+            
+            textSettings.font = fontName;
+            redraw();
+        }
+        
+        function updateSizePreview(value) {
+            document.getElementById('sizeValue').textContent = value;
+            textSettings.size = parseInt(value);
+            redraw();
+        }
+
+        function setSize(size) {
+            // This function is no longer used but kept for compatibility
+            textSettings.size = size;
+            redraw();
+        }
+
+        function addToSequence() {
+            const item = {
+                text: textSettings.text,
+                font: textSettings.font,
+                size: textSettings.size,
+                x: textSettings.x,
+                y: textSettings.y,
+                id: Date.now()
+            };
+            
+            sequence.push(item);
+            updateSequenceList();
+            redraw();
+        }
+
+        function removeFromSequence(id) {
+            sequence = sequence.filter(item => item.id !== id);
+            updateSequenceList();
+            redraw();
+        }
+
+        function clearSequence() {
+            sequence = [];
+            updateSequenceList();
+            redraw();
+        }
+
+        function updateSequenceList() {
+            const container = document.getElementById('sequenceList');
+            document.getElementById('sequenceCount').textContent = sequence.length;
+            
+            if (sequence.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
+                        <div>No items yet</div>
+                        <div style="font-size: 12px; margin-top: 8px;">Add text to start building your sequence</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            sequence.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'sequence-item';
+                div.innerHTML = `
+                    <div class="sequence-item-text">
+                        <strong>${idx + 1}.</strong> ${item.text.replace(/\n/g, ' ').substring(0, 30)}...
+                    </div>
+                    <button class="sequence-item-remove" onclick="removeFromSequence(${item.id})">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function exportAllGCode() {
+            if (sequence.length === 0) {
+                alert('Add some text to the sequence first!');
+                return;
+            }
+            
+            console.log('=== STARTING EXPORT ===');
+            console.log('Number of files:', sequence.length);
+            
+            // Generate all G-code first and cache it
+            window.cachedGCode = [];
+            sequence.forEach((item, idx) => {
+                const gcode = generateGCode(item.text, item.font, item.size, item.x, item.y);
+                const cleanText = item.text.replace(/\n/g, '_').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+                const filename = `${String(idx + 1).padStart(2, '0')}_${cleanText || 'TEXT'}.GC`;
+                window.cachedGCode.push({ gcode, filename });
+            });
+            
+            // Try automatic download
+            let downloadAttempted = false;
+            
+            window.cachedGCode.forEach((item, idx) => {
+                setTimeout(() => {
+                    console.log(`Exporting ${idx + 1}/${window.cachedGCode.length}:`, item.filename);
+                    downloadAttempted = downloadFile(item.gcode, item.filename);
+                }, idx * 150);
+            });
+            
+            // Show alternative export option after attempts
+            setTimeout(() => {
+                console.log('=== EXPORT COMPLETE ===');
+                
+                const message = `Export attempted for ${sequence.length} files.\n\n` +
+                    `⚠️ If downloads didn't work (Safari issue):\n` +
+                    `1. Click "Show G-Code Files" below to copy/paste manually\n` +
+                    `2. Or try using Chrome/Firefox instead\n\n` +
+                    `Check your Downloads folder - files may be there!`;
+                
+                if (!confirm(message + '\n\nClick OK to show G-code files for manual copy.')) {
+                    return;
+                }
+                
+                // Show all G-code files in a copyable format
+                showGCodeModal();
+                
+            }, window.cachedGCode.length * 150 + 500);
+        }
+        
+        function showGCodeModal() {
+            // Create modal with all G-code files (using cached data)
+            let modalHTML = '<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; overflow: auto;">';
+            modalHTML += '<div style="background: white; margin: 40px auto; max-width: 800px; padding: 20px; border-radius: 8px;">';
+            modalHTML += '<h2>📄 G-Code Files</h2>';
+            modalHTML += '<p>Download or copy each file:</p>';
+            
+            window.cachedGCode.forEach((item, idx) => {
+                modalHTML += `<div style="margin: 20px 0; border: 2px solid #ddd; padding: 10px; border-radius: 4px;">`;
+                modalHTML += `<h3 style="margin: 0 0 10px 0;">File: ${item.filename}</h3>`;
+                modalHTML += `<textarea readonly style="width: 100%; height: 150px; font-family: monospace; font-size: 11px; padding: 8px;" onclick="this.select();" id="gcode_${idx}">${item.gcode}</textarea>`;
+                modalHTML += `<div style="margin-top: 8px; display: flex; gap: 8px;">`;
+                modalHTML += `<button onclick="downloadGCodeFile(${idx})" style="flex: 1; padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Download File</button>`;
+                modalHTML += `<button onclick="copyGCodeToClipboard(${idx}, '${item.filename}')" style="flex: 1; padding: 8px 16px; background: #00A5B5; color: white; border: none; border-radius: 4px; cursor: pointer;">📋 Copy to Clipboard</button>`;
+                modalHTML += `</div>`;
+                modalHTML += `</div>`;
+            });
+            
+            modalHTML += '<div style="margin-top: 20px; display: flex; gap: 12px;">';
+            modalHTML += '<button onclick="downloadAllGCodeFiles()" style="flex: 1; padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">💾 Download All Files</button>';
+            modalHTML += '<button onclick="this.parentElement.parentElement.parentElement.remove()" style="flex: 1; padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">✕ Close</button>';
+            modalHTML += '</div>';
+            modalHTML += '</div></div>';
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        function downloadGCodeFile(idx) {
+            const item = window.cachedGCode[idx];
+            const dataStr = 'data:text/plain;charset=utf-8,' + encodeURIComponent(item.gcode);
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = item.filename;
+            a.click();
+            console.log('✓ Downloaded:', item.filename);
+        }
+        
+        function downloadAllGCodeFiles() {
+            window.cachedGCode.forEach((item, idx) => {
+                setTimeout(() => {
+                    downloadGCodeFile(idx);
+                }, idx * 200);
+            });
+            alert(`Downloading ${window.cachedGCode.length} files!\n\nCheck your Downloads folder.`);
+        }
+        
+        function copyGCodeToClipboard(idx, filename) {
+            const text = document.getElementById('gcode_' + idx).value;
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`✓ Copied ${filename} to clipboard!\n\nNow paste into a text editor and save as ${filename}`);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                alert('Copy failed. Please select and copy manually (Cmd+C)');
+            });
+        }
+        
+        function previewCurrentGCode() {
+            // Generate G-code for current settings
+            const gcode = generateGCode(textSettings.text, textSettings.font, textSettings.size, textSettings.x, textSettings.y);
+            
+            // Show preview modal
+            let modalHTML = '<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10000; overflow: auto;">';
+            modalHTML += '<div style="background: white; margin: 40px auto; max-width: 1000px; padding: 20px; border-radius: 8px;">';
+            modalHTML += '<h2>👁️ G-Code Preview</h2>';
+            
+            // Parse and visualize G-code
+            modalHTML += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">';
+            
+            // Visual preview
+            modalHTML += '<div>';
+            modalHTML += '<h3>Visual Preview</h3>';
+            modalHTML += '<canvas id="gcodePreviewCanvas" width="500" height="500" style="border: 2px solid #ddd; background: #f5f5f5;"></canvas>';
+            modalHTML += '</div>';
+            
+            // G-code text
+            modalHTML += '<div>';
+            modalHTML += '<h3>G-Code</h3>';
+            modalHTML += '<textarea readonly style="width: 100%; height: 500px; font-family: monospace; font-size: 11px; padding: 8px; border: 2px solid #ddd;" onclick="this.select();">' + gcode + '</textarea>';
+            modalHTML += '<button onclick="navigator.clipboard.writeText(this.previousElementSibling.value).then(() => alert(\'Copied!\'))" style="margin-top: 8px; padding: 8px 16px; background: #00A5B5; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">📋 Copy G-Code</button>';
+            modalHTML += '</div>';
+            
+            modalHTML += '</div>';
+            
+            modalHTML += '<button onclick="this.parentElement.parentElement.remove()" style="margin-top: 20px; padding: 12px 24px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%;">✕ Close</button>';
+            modalHTML += '</div></div>';
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Draw the preview
+            setTimeout(() => {
+                drawGCodePreview(gcode);
+            }, 100);
+        }
+        
+        function drawGCodePreview(gcode) {
+            const canvas = document.getElementById('gcodePreviewCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 500, 500);
+            
+            // Draw grid
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 500; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, 500);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(500, i);
+                ctx.stroke();
+            }
+            
+            // Draw border
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, 500, 500);
+            
+            // Parse and draw G-code
+            ctx.strokeStyle = '#00A5B5';
+            ctx.lineWidth = 2;
+            
+            const lines = gcode.split('\n');
+            let currentX = 0, currentY = 0;
+            let penDown = false;
+            
+            lines.forEach(line => {
+                line = line.trim();
+                
+                if (line.startsWith('G0 Z0') || line.startsWith('G1 Z0')) {
+                    penDown = true;
+                } else if (line.startsWith('G0 Z5') || line.startsWith('G1 Z5')) {
+                    penDown = false;
+                } else if (line.startsWith('G0 ') || line.startsWith('G1 ')) {
+                    // Parse X and Y
+                    const xMatch = line.match(/X([\d.-]+)/);
+                    const yMatch = line.match(/Y([\d.-]+)/);
+                    
+                    if (xMatch && yMatch) {
+                        const newX = parseFloat(xMatch[1]);
+                        const newY = parseFloat(yMatch[1]);
+                        
+                        if (penDown) {
+                            ctx.beginPath();
+                            ctx.moveTo(currentX, currentY);
+                            ctx.lineTo(newX, newY);
+                            ctx.stroke();
+                        }
+                        
+                        currentX = newX;
+                        currentY = newY;
+                    }
+                }
+            });
+        }
+
+        function generateGCode(text, fontName, fontSize, x, y) {
+            console.log('Generating G-code for:', text);
+            
+            // Strategy: Render and capture the FINAL transformed coordinates
+            let allStrokes = [];
+            let currentStroke = [];
+            let transformMatrix = { tx: 0, ty: 0, sx: 1, sy: 1 };
+            
+            // Override global drawing functions to capture FINAL coordinates
+            let origPush = window.push;
+            let origPop = window.pop;
+            let origTranslate = window.translate;
+            let origScale = window.scale;
+            let origBeginShape = window.beginShape;
+            let origVertex = window.vertex;
+            let origEndShape = window.endShape;
+            
+            let captureMode = false;
+            let transformStack = [];
+            
+            window.push = function() {
+                if (captureMode) {
+                    transformStack.push({...transformMatrix});
+                }
+                return origPush.apply(this, arguments);
+            };
+            
+            window.pop = function() {
+                if (captureMode && transformStack.length > 0) {
+                    transformMatrix = transformStack.pop();
+                }
+                return origPop.apply(this, arguments);
+            };
+            
+            window.translate = function(tx, ty) {
+                if (captureMode) {
+                    transformMatrix.tx += tx * transformMatrix.sx;
+                    transformMatrix.ty += ty * transformMatrix.sy;
+                }
+                return origTranslate.apply(this, arguments);
+            };
+            
+            window.scale = function(s) {
+                if (captureMode) {
+                    transformMatrix.sx *= s;
+                    transformMatrix.sy *= s;
+                }
+                return origScale.apply(this, arguments);
+            };
+            
+            window.beginShape = function() {
+                if (captureMode) {
+                    currentStroke = [];
+                }
+                return origBeginShape.apply(this, arguments);
+            };
+            
+            window.vertex = function(vx, vy) {
+                if (captureMode) {
+                    // Apply current transformation
+                    const finalX = vx * transformMatrix.sx + transformMatrix.tx;
+                    const finalY = vy * transformMatrix.sy + transformMatrix.ty;
+                    currentStroke.push({x: finalX, y: finalY});
+                }
+                return origVertex.apply(this, arguments);
+            };
+            
+            window.endShape = function() {
+                if (captureMode && currentStroke.length > 1) {
+                    allStrokes.push([...currentStroke]);
+                }
+                return origEndShape.apply(this, arguments);
+            };
+            
+            // Render to capture
+            captureMode = true;
+            transformMatrix = { tx: 0, ty: 0, sx: 1, sy: 1 };
+            transformStack = [];
+            
+            // Handle multi-line text
+            const lines = text.split('\n');
+            const lineHeight = fontSize * 1.4;
+            const totalHeight = lines.length * lineHeight;
+            const startY = y - (totalHeight / 2) + (lineHeight / 2);
+            
+            lines.forEach((line, i) => {
+                push();
+                translate(x, startY + (i * lineHeight));
+                scale(fontSize / 21);
+                noFill();
+                stroke(0);
+                
+                P5.hershey.putText(line, {
+                    cmap: FONT_HERSHEY[fontName],
+                    align: 'center'
+                });
+                
+                pop();
+            });
+            
+            captureMode = false;
+            
+            // Restore original functions
+            window.push = origPush;
+            window.pop = origPop;
+            window.translate = origTranslate;
+            window.scale = origScale;
+            window.beginShape = origBeginShape;
+            window.vertex = origVertex;
+            window.endShape = origEndShape;
+            
+            console.log('Captured', allStrokes.length, 'strokes');
+            
+            if (allStrokes.length === 0) {
+                console.error('NO STROKES CAPTURED!');
+            }
+            
+            // Build G-code
+            let gcode = '; TOM Plotter G-code - 500x500\n';
+            gcode += '; Generated: ' + new Date().toISOString() + '\n';
+            gcode += '; Text: ' + text.replace(/\n/g, ' ') + '\n';
+            gcode += '; Font: ' + fontName + '\n';
+            gcode += '; Size: ' + fontSize + '\n';
+            gcode += '; Position: X' + Math.round(x) + ' Y' + Math.round(y) + '\n';
+            gcode += ';\n';
+            gcode += 'G21 ; Plotter coordinates\n';
+            gcode += 'G90 ; Absolute positioning\n';
+            gcode += 'G0 Z5 ; Pen up\n';
+            gcode += 'G0 X0 Y0 ; Origin\n\n';
+            
+            if (allStrokes.length === 0) {
+                gcode += '; WARNING: No strokes captured\n\n';
+            }
+            
+            // Export each stroke
+            allStrokes.forEach((stroke, idx) => {
+                if (stroke.length < 2) return;
+                
+                gcode += `; Stroke ${idx + 1}\n`;
+                
+                // First point - pen up, move, pen down
+                // Clamp coordinates to 0-500 range and flip Y
+                let x0 = Math.max(0, Math.min(500, stroke[0].x)).toFixed(1);
+                let y0 = Math.max(0, Math.min(500, 500 - stroke[0].y)).toFixed(1);
+                gcode += `G0 X${x0} Y${y0}\n`;
+                gcode += 'G0 Z0 ; Pen down\n';
+                
+                // Rest of points - draw
+                for (let i = 1; i < stroke.length; i++) {
+                    let xi = Math.max(0, Math.min(500, stroke[i].x)).toFixed(1);
+                    let yi = Math.max(0, Math.min(500, 500 - stroke[i].y)).toFixed(1);
+                    gcode += `G1 X${xi} Y${yi} F2000\n`;
+                }
+                
+                gcode += 'G0 Z5 ; Pen up\n\n';
+            });
+            
+            gcode += 'G0 X0 Y0\n';
+            gcode += 'M2 ; End\n';
+            
+            console.log('G-code generated:', gcode.length, 'bytes,', allStrokes.length, 'strokes');
+            return gcode;
+        }
+
+        function downloadFile(content, filename) {
+            try {
+                console.log('Creating download for:', filename, '(' + content.length + ' bytes)');
+                
+                // Create blob with proper MIME type
+                const blob = new Blob([content], { type: 'application/octet-stream' });
+                
+                // For Safari compatibility, use a different approach
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                    // IE/Edge
+                    window.navigator.msSaveOrOpenBlob(blob, filename);
+                } else {
+                    // Modern browsers
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = filename;
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Cleanup
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }, 100);
+                }
+                
+                console.log('✓ Download initiated:', filename);
+                return true;
+            } catch (error) {
+                console.error('✗ Download failed:', filename, error);
+                
+                // Fallback: create a data URL
+                try {
+                    const dataStr = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+                    const a = document.createElement('a');
+                    a.href = dataStr;
+                    a.download = filename;
+                    a.click();
+                    console.log('✓ Downloaded via data URL:', filename);
+                    return true;
+                } catch (err2) {
+                    console.error('✗ Fallback also failed:', err2);
+                    return false;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
