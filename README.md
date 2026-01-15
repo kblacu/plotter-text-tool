@@ -28,6 +28,11 @@ Built with:
 - [p5.js](https://p5js.org/) - Creative coding library for the canvas preview
 - [p5-hershey-js](https://github.com/LingDong-/p5-hershey-js) - Hershey font rendering for p5.js
 
+## Credits
+
+Single-line Hershey font resources by [Lingdong Huang](https://github.com/LingDong-) and [Golan Levin](https://github.com/golanlevin):
+- [p5-single-line-font-resources](https://github.com/golanlevin/p5-single-line-font-resources/tree/main/lingdong_hfedit)
+
 ## About
 
 This tool was created as part of the Adaptive Drawing Machine project at CMU, designed to make pen plotting more accessible.
